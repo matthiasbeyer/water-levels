@@ -204,6 +204,7 @@ mod tests {
 
     #[tokio::test]
     async fn let_it_rain_simple() {
+        let _ = env_logger::try_init();
         let ls = Landscape::new(vec![1]);
         let rls = ls.let_it_rain(1).await.unwrap();
 
@@ -213,6 +214,7 @@ mod tests {
 
     #[tokio::test]
     async fn let_it_rain_two_landscape_elements() {
+        let _ = env_logger::try_init();
         let ls = Landscape::new(vec![3, 1]);
         let rls = ls.let_it_rain(1).await.unwrap();
 

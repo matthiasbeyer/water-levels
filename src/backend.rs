@@ -2,6 +2,9 @@ use anyhow::Result;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::util::*;
+
+
 pub struct Landscape {
     elements: Vec<Arc<RwLock<LandscapeElement>>>,
 }
@@ -20,7 +23,31 @@ impl Landscape {
 
     // here is where the fun is
     pub async fn let_it_rain(mut self, hours: usize) -> Result<RainyLandscape> {
+        let sim = self.prepare_element_simulation().await?;
         unimplemented!()
+    }
+
+    async fn prepare_element_simulation(&self) -> Result<Vec<ElementRainingSimulation>> {
+        let mut simulation_elements = self.elements
+            .iter()
+            .map(Arc::clone)
+            .map(ElementRainingSimulation::new)
+            .collect::<Vec<_>>();
+
+        {
+            let mut windows = ThreeElemWindowMut::new(&mut simulation_elements);
+            while let Some(mut window) = windows.next() {
+                // we know from the ThreeElemWindowMut impl that 'window' always has three elements
+
+                window[1].left_neighbor = Some(window[0].element.clone());
+                window[0].right_neighbor = Some(window[1].element.clone());
+
+                window[1].right_neighbor = Some(window[2].element.clone());
+                window[2].left_neighbor = Some(window[1].element.clone());
+            }
+        }
+
+        Ok(simulation_elements)
     }
 }
 

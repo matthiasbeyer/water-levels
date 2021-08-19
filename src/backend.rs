@@ -65,7 +65,7 @@ impl LandscapeElement {
     }
 }
 
-pub struct ElementRainingSimulation {
+struct ElementRainingSimulation {
     element: Arc<RwLock<LandscapeElement>>,
 
     left_neighbor: Option<Arc<RwLock<LandscapeElement>>>,

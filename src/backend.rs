@@ -210,4 +210,16 @@ mod tests {
         assert_eq!(rls.elements().len(), 1);
         assert_float_eq!(rls.elements().get(0).unwrap().read().await.get_current_height(), 2.0, abs <= 0.000_1);
     }
+
+    #[tokio::test]
+    async fn let_it_rain_two_landscape_elements() {
+        let ls = Landscape::new(vec![3, 1]);
+        let rls = ls.let_it_rain(1).await.unwrap();
+
+        assert_eq!(rls.elements().len(), 2);
+        let elements = rls.elements();
+
+        assert_float_eq!(elements.get(0).unwrap().read().await.get_current_height(), 3.0, abs <= 0.000_1);
+        assert_float_eq!(elements.get(1).unwrap().read().await.get_current_height(), 3.0, abs <= 0.000_1);
+    }
 }

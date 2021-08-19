@@ -20,7 +20,7 @@ impl Landscape {
     }
 
     // here is where the fun is
-    pub fn let_it_rain(mut self, mut hours: usize) -> RainyLandscape {
+    pub async fn let_it_rain(mut self, hours: usize) -> Result<RainyLandscape> {
         unimplemented!()
     }
 }

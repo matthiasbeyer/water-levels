@@ -13,6 +13,8 @@ serde      = "1"
 getset     = "0.1"
 tokio      = { version = "1", features = ["sync", "macros"] }
 anyhow     = "1"
+futures    = "0.3"
+resiter    = "0.4"
 
 [dev-dependencies]
 tokio-test = "0.4"

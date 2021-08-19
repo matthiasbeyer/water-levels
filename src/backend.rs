@@ -1,6 +1,7 @@
 use anyhow::Result;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use resiter::Map;
 
 use crate::util::*;
 
@@ -23,8 +24,19 @@ impl Landscape {
 
     // here is where the fun is
     pub async fn let_it_rain(mut self, hours: usize) -> Result<RainyLandscape> {
-        let sim = self.prepare_element_simulation().await?;
-        unimplemented!()
+        use futures::StreamExt;
+
+        self.prepare_element_simulation()
+            .await?
+            .into_iter()
+            .map(|el| el.let_it_rain(hours))
+            .collect::<futures::stream::FuturesUnordered<_>>()
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .map_ok(ElementRainingSimulation::into_landscape_element)
+            .collect::<Result<Vec<_>>>()
+            .map(RainyLandscape::new)
     }
 
     async fn prepare_element_simulation(&self) -> Result<Vec<ElementRainingSimulation>> {
@@ -108,6 +120,10 @@ impl ElementRainingSimulation {
         }
     }
 
+    pub fn into_landscape_element(self) -> Arc<RwLock<LandscapeElement>> {
+        self.element
+    }
+
     pub async fn let_it_rain(self, mut hours: usize) -> Result<Self> {
         while hours != 0 {
             match (self.left_neighbor.as_ref(), self.right_neighbor.as_ref()) {
@@ -172,7 +188,13 @@ impl ElementRainingSimulation {
 #[derive(getset::Getters)]
 pub struct RainyLandscape {
     #[getset(get = "pub")]
-    elements: Vec<LandscapeElement>
+    elements: Vec<Arc<RwLock<LandscapeElement>>>
+}
+
+impl RainyLandscape {
+    fn new(elements: Vec<Arc<RwLock<LandscapeElement>>>) -> Self {
+        RainyLandscape { elements }
+    }
 }
 
 #[cfg(test)]
@@ -186,6 +208,6 @@ mod tests {
         let rls = ls.let_it_rain(1).await.unwrap();
 
         assert_eq!(rls.elements().len(), 1);
-        assert_float_eq!(rls.elements().get(0).unwrap().get_current_height(), 2.0, abs <= 0.000_1);
+        assert_float_eq!(rls.elements().get(0).unwrap().read().await.get_current_height(), 2.0, abs <= 0.000_1);
     }
 }

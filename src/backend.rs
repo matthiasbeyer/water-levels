@@ -73,6 +73,14 @@ struct ElementRainingSimulation {
 }
 
 impl ElementRainingSimulation {
+    pub fn new(element: Arc<RwLock<LandscapeElement>>) -> Self {
+        ElementRainingSimulation {
+            element,
+            left_neighbor: None,
+            right_neighbor: None,
+        }
+    }
+
     pub async fn let_it_rain(self, mut hours: usize) -> Result<()> {
         while hours != 0 {
             match (self.left_neighbor.as_ref(), self.right_neighbor.as_ref()) {

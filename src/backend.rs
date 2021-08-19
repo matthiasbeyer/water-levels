@@ -108,7 +108,7 @@ impl ElementRainingSimulation {
         }
     }
 
-    pub async fn let_it_rain(self, mut hours: usize) -> Result<()> {
+    pub async fn let_it_rain(self, mut hours: usize) -> Result<Self> {
         while hours != 0 {
             match (self.left_neighbor.as_ref(), self.right_neighbor.as_ref()) {
                 // simple case: this is the only element on the landscape, so it only rains on this
@@ -165,7 +165,7 @@ impl ElementRainingSimulation {
             hours -= 1;
         }
 
-        Ok(())
+        Ok(self)
     }
 }
 

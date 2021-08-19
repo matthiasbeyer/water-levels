@@ -4,6 +4,7 @@ use actix_web::middleware::Logger;
 
 mod frontend;
 mod backend;
+mod util;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

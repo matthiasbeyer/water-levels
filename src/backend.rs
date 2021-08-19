@@ -46,7 +46,8 @@ impl Landscape {
             .map(ElementRainingSimulation::new)
             .collect::<Vec<_>>();
 
-        {
+        if simulation_elements.len() >= 3 {
+            log::debug!("Having three or more landscape elements in the simulation, pairing them now");
             let mut windows = ThreeElemWindowMut::new(&mut simulation_elements);
             while let Some(mut window) = windows.next() {
                 // we know from the ThreeElemWindowMut impl that 'window' always has three elements
@@ -57,6 +58,10 @@ impl Landscape {
                 window[1].right_neighbor = Some(window[2].element.clone());
                 window[2].left_neighbor = Some(window[1].element.clone());
             }
+        } else if simulation_elements.len() == 2 {
+            log::debug!("Having only two landscape elements in the simulation, pairing them now");
+            simulation_elements[0].right_neighbor = Some(simulation_elements[1].element.clone());
+            simulation_elements[1].left_neighbor = Some(simulation_elements[0].element.clone());
         }
 
         Ok(simulation_elements)

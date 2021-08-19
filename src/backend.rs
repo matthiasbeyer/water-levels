@@ -23,7 +23,7 @@ impl Landscape {
     }
 
     // here is where the fun is
-    pub async fn let_it_rain(mut self, hours: usize) -> Result<RainyLandscape> {
+    pub async fn let_it_rain(self, hours: usize) -> Result<RainyLandscape> {
         use futures::StreamExt;
 
         self.prepare_element_simulation()

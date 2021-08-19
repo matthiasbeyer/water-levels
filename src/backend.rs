@@ -142,12 +142,15 @@ pub struct RainyLandscape {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn let_it_rain_simple() {
+    use super::*;
+    use float_eq::assert_float_eq;
+
+    #[tokio::test]
+    async fn let_it_rain_simple() {
         let ls = Landscape::new(vec![1]);
-        let rls = ls.let_it_rain(1);
+        let rls = ls.let_it_rain(1).await.unwrap();
 
         assert_eq!(rls.elements().len(), 1);
-        assert_eq!(rls.elements().get(0).unwrap(), 2);
+        assert_float_eq!(rls.elements().get(0).unwrap().get_current_height(), 2.0, abs <= 0.000_1);
     }
 }

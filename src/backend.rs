@@ -1,6 +1,5 @@
 use anyhow::Result;
 use std::sync::Arc;
-use std::collections::LinkedList;
 use tokio::sync::RwLock;
 
 pub struct Landscape {
@@ -138,7 +137,7 @@ impl ElementRainingSimulation {
 #[derive(getset::Getters)]
 pub struct RainyLandscape {
     #[getset(get = "pub")]
-    elements: LinkedList<LandscapeElement>
+    elements: Vec<LandscapeElement>
 }
 
 #[cfg(test)]

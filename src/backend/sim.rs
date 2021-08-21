@@ -34,7 +34,5 @@ impl ElementRainingSimulation {
         log::debug!("Let it rain for {} hours", hours);
 
         unimplemented!()
-
-        Ok(self)
     }
 }

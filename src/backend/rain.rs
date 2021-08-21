@@ -3,7 +3,7 @@ pub struct RainElement(f32);
 
 impl RainElement {
     pub fn full() -> Self {
-        RainElement(1)
+        RainElement(1.0)
     }
 }
 

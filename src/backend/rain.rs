@@ -1,9 +1,13 @@
-#[derive(Debug, std::ops::Div)]
+#[derive(Debug)]
 pub struct RainElement(f32);
 
 impl RainElement {
     pub fn full() -> Self {
         RainElement(1.0)
+    }
+
+    pub fn half(self) -> Self {
+        RainElement(self.0 * 0.5)
     }
 }
 

@@ -1,14 +1,15 @@
-pub enum RainElement {
-    FullRainElement,
-    HalfRainElement
+#[derive(Debug, std::ops::Div)]
+pub struct RainElement(f32);
+
+impl RainElement {
+    pub fn full() -> Self {
+        RainElement(1)
+    }
 }
 
 impl RainElement {
     pub fn as_f32(&self) -> f32 {
-        match self {
-            RainElement::FullRainElement => 1.0,
-            RainElement::HalfRainElement => 0.5,
-        }
+        self.0
     }
 }
 

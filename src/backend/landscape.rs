@@ -53,28 +53,30 @@ impl Landscape {
             while let Some(mut window) = windows.next() {
                 // we know from the ThreeElemWindowMut impl that 'window' always has three elements
 
-                let el = window[0].element().clone();
-                window[1].set_left_neighbor(Some(el));
+                let el = window[0].0.element().clone();
+                window[1].0.set_left_neighbor(el, window[0].1.clone());
 
-                let el = window[1].element().clone();
-                window[0].set_right_neighbor(Some(el));
+                let el = window[1].0.element().clone();
+                window[0].0.set_right_neighbor(el, window[1].1.clone());
 
-                let el = window[2].element().clone();
-                window[1].set_right_neighbor(Some(el));
+                let el = window[2].0.element().clone();
+                window[1].0.set_right_neighbor(el, window[2].1.clone());
 
-                let el = window[1].element().clone();
-                window[2].set_left_neighbor(Some(el));
+                let el = window[1].0.element().clone();
+                window[2].0.set_left_neighbor(el, window[1].1.clone());
             }
         } else if simulation_elements.len() == 2 {
             log::debug!("Having only two landscape elements in the simulation, pairing them now");
-            let el = simulation_elements[1].element().clone();
-            simulation_elements[0].set_right_neighbor(Some(el));
+            let el = simulation_elements[1].0.element().clone();
+            let sender = simulation_elements[1].1.clone();
+            simulation_elements[0].0.set_right_neighbor(el, sender);
 
-            let el = simulation_elements[0].element().clone();
-            simulation_elements[1].set_left_neighbor(Some(el));
+            let el = simulation_elements[0].0.element().clone();
+            let sender = simulation_elements[0].1.clone();
+            simulation_elements[1].0.set_left_neighbor(el, sender);
         }
 
-        Ok(simulation_elements)
+        Ok(simulation_elements.into_iter().map(|tpl| tpl.0).collect())
     }
 }
 

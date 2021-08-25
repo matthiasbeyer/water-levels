@@ -46,13 +46,13 @@ impl LandscapeElement {
 }
 
 fn rearrange(land: &mut [LandscapeElement]) {
+    use float_cmp::*;
     log::trace!("Rearrange: {:?}", land);
 
     if land.len() > 1 {
         let max_idx = land.iter()
             .enumerate()
             .max_by(|(_i, a), (_j, b)| {
-                use float_cmp::*;
                 use std::cmp::Ordering;
 
                 if approx_eq!(f32, a.current_height(), b.current_height(), F32Margin::default()) {
@@ -73,11 +73,16 @@ fn rearrange(land: &mut [LandscapeElement]) {
         };
         log::trace!("Maximum at index {}", max_idx);
 
+        if land.iter().all(|elem| approx_eq!(f32, elem.current_height(), land[max_idx].current_height(), F32Margin::default())) {
+            return;
+        }
+
         {
             let mut idx = max_idx as usize;
             while idx >= 0 {
                 if idx == 0 {
-                    // no left element
+                    // no left element, cannot subtract 1
+                    log::trace!("No element on the left of 0, increasing at 0");
                     land[idx].increase_height(0.5);
                     break;
                 }
@@ -108,11 +113,34 @@ fn rearrange(land: &mut [LandscapeElement]) {
             }
         }
 
-        // TODO: right side
+        {
+            let mut idx = max_idx as usize;
+            while idx < land.len() {
+                match land.get(idx + 1) {
+                    None => {
+                        // no element on my right, I am the last element
+                        log::trace!("No element on the right of {}, increasing at {}", idx, idx);
+                        land[idx].increase_height(0.5);
+                        break;
+                    }
+
+                    Some(one_to_right) => if one_to_right.current_height() > land[idx].current_height() {
+                        // right to me is higher than I am, water stays with me
+                        log::trace!("Element on the right of {} is higher, increasing {}", idx, idx + 1);
+                        land[idx].increase_height(0.5);
+                    } else {
+                        log::trace!("Element on the right of {} is lower, continue", idx);
+                        // continue iterating
+                    }
+                }
+
+                idx += 1;
+            }
+        }
 
         let land_len = land.len();
         rearrange(&mut land[0..max_idx]);
-        rearrange(&mut land[max_idx..(land_len - 1)]);
+        rearrange(&mut land[(max_idx)..(land_len - 1)]);
     }
 }
 

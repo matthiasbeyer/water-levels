@@ -70,6 +70,7 @@ pub struct Landscape {
 
 #[post("/calculate")]
 pub async fn calculate(form: web::Form<Landscape>) -> Result<maud::Markup> {
+    let ls = crate::backend::landscape::Landscape::new(form.levels.clone()).rain(form.hours);
     Ok(maud::html! {
         html {
             body {
@@ -79,6 +80,12 @@ pub async fn calculate(form: web::Form<Landscape>) -> Result<maud::Markup> {
 
                 @for value in &form.levels {
                     p { (value) }
+                }
+
+                h2 { "Filled" }
+
+                @for val in ls.into_inner() {
+                    p { (val.0) " + " (val.1) }
                 }
             }
         }

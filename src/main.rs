@@ -7,7 +7,9 @@ mod backend;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=info");
+    if let Err(std::env::VarError::NotPresent) = std::env::var("RUST_LOG") {
+        std::env::set_var("RUST_LOG", "actix_web=info");
+    }
     env_logger::init();
 
     HttpServer::new(|| {

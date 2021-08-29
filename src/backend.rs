@@ -43,128 +43,131 @@ impl LandscapeElement {
     fn increase_height(&mut self, h: f32) {
         self.water_level += h;
     }
+
+    fn decrease_height(&mut self, h: f32) {
+        self.water_level -= h;
+    }
 }
 
 fn rearrange(land: &mut [LandscapeElement]) {
     use float_cmp::*;
     log::trace!("Rearrange: {:?}", land);
 
-    if land.len() > 1 {
-        let max_idx = land.iter()
-            .enumerate()
-            .max_by(|(_i, a), (_j, b)| {
-                use std::cmp::Ordering;
+    if land.len() == 1 {
+        return
+    }
 
-                if approx_eq!(f32, a.current_height(), b.current_height(), F32Margin::default()) {
-                    Ordering::Equal
+    let max_idx = find_land_max_idx(land);
+    let max_idx = match max_idx {
+        None => return, // no maximum, we're ready
+        Some(m) => m,
+    };
+    log::trace!("Maximum at index {}", max_idx);
+
+    // if all elements are of equal height as the current maximum, return
+    if land.iter().all(|elem| approx_eq!(f32, elem.current_height(), land[max_idx].current_height(), F32Margin::default())) {
+        return;
+    }
+
+    let has_left_neighbor = max_idx != 0;
+    let has_right_neighbor = max_idx != (land.len() - 1);
+
+    match (has_left_neighbor, has_right_neighbor) {
+        (true, false) => {
+            log::trace!("Have left neighbor");
+            if left_neighbor_is_lower(land, max_idx) {
+                log::trace!("Have left neighbor that is lower");
+                land[max_idx - 1].increase_height(1.0);
+                land[max_idx].decrease_height(1.0);
+
+                rearrange(&mut land[0..max_idx]);
+            }
+        },
+        (false, true) => {
+            log::trace!("Have right neighbor");
+            if right_neighbor_is_lower(land, max_idx) {
+                log::trace!("Have right neighbor that is lower");
+                land[max_idx + 1].increase_height(1.0);
+                land[max_idx].decrease_height(1.0);
+
+                let land_max = land.len() - 1;
+                rearrange(&mut land[max_idx..land_max]);
+           }
+        },
+        (true, true) => {
+            log::trace!("Have both neighbors");
+            let l_lower = left_neighbor_is_lower(land, max_idx);
+            let r_lower = right_neighbor_is_lower(land, max_idx);
+            match (l_lower, r_lower) {
+                (true, true) => {
+                    log::trace!("both neighbors lower");
+                    land[max_idx - 1].increase_height(0.5);
+                    land[max_idx + 1].increase_height(0.5);
+                    land[max_idx].decrease_height(1.0);
+
+                    let land_max = land.len() - 1;
+                    rearrange(&mut land[0..max_idx]);
+                    rearrange(&mut land[max_idx..land_max]);
+                },
+                (false, true) => {
+                    log::trace!("right neighbor lower");
+                    land[max_idx + 1].increase_height(1.0);
+                    land[max_idx].decrease_height(1.0);
+
+                    let land_max = land.len() - 1;
+                    rearrange(&mut land[max_idx..land_max]);
+                },
+                (true, false) => {
+                    log::trace!("left neighbor lower");
+                    land[max_idx - 1].increase_height(1.0);
+                    land[max_idx].decrease_height(1.0);
+
+                    rearrange(&mut land[0..max_idx]);
+                },
+                (false, false) => {},
+            }
+        },
+        (false, false) => {},
+    };
+
+
+    let land_max = land.len() - 1;
+    rearrange(&mut land[0..max_idx]);
+    rearrange(&mut land[max_idx..land_max]);
+}
+
+fn find_land_max_idx(land: &[LandscapeElement]) -> Option<usize> {
+    land.iter()
+        .enumerate()
+        .max_by(|(_i, a), (_j, b)| {
+            use std::cmp::Ordering;
+
+            if float_cmp::approx_eq!(f32, a.current_height(), b.current_height(), float_cmp::F32Margin::default()) {
+                Ordering::Equal
+            } else {
+                if a.current_height() > b.current_height() {
+                    Ordering::Greater
                 } else {
-                    if a.current_height() > b.current_height() {
-                        Ordering::Greater
-                    } else {
-                        Ordering::Less
-                    }
-                }
-            })
-            .map(|(idx, _)| idx);
-
-        let max_idx = match max_idx {
-            None => return, // no maximum, we're ready
-            Some(m) => m,
-        };
-        log::trace!("Maximum at index {}", max_idx);
-
-        if land.iter().all(|elem| approx_eq!(f32, elem.current_height(), land[max_idx].current_height(), F32Margin::default())) {
-            return;
-        }
-
-        let has_left_neighbor = max_idx != 0;
-        let has_right_neighbor = max_idx != (land.len() - 1);
-
-        let (water_to_left, water_to_right) = match (has_left_neighbor, has_right_neighbor) {
-            (true, false) => {
-                (1.0, 0.0)
-            },
-            (false, true) => {
-                (0.0, 1.0)
-            },
-            (true, true) => {
-                (1.0, 1.0)
-            },
-            (false, false) => {
-                (0.0, 0.0)
-            },
-        };
-
-        {
-            let mut idx = max_idx as usize;
-            while idx >= 0 {
-                if idx == 0 {
-                    // no left element, cannot subtract 1
-                    log::trace!("No element on the left of 0, increasing at 0 with {}", water_to_left);
-                    land[idx].increase_height(water_to_left);
-                    break;
-                }
-
-                match land.get(idx - 1) {
-                    None => {
-                        // no element on my left, I am the last element
-                        log::trace!("No element on the left of {}, increasing at {} with {}", idx, idx, water_to_left);
-                        land[idx].increase_height(water_to_left);
-                        break;
-                    }
-
-                    Some(one_to_left) => {
-                        let left_h = one_to_left.current_height();
-                        let curr_h = land[idx].current_height();
-
-                        log::trace!("{} -- {}", left_h, curr_h);
-                        if left_h > curr_h || float_cmp::approx_eq!(f32, left_h, curr_h, F32Margin::default()) {
-                            // left to me is higher than I am, water stays with me
-                            log::trace!("Element on the left of {} is higher or eq, increasing {} with {}", idx, idx, water_to_left);
-                            land[idx].increase_height(water_to_left);
-                        } else {
-                            log::trace!("Element on the left of {} is lower, continue", idx);
-                            // continue iterating
-                        }
-                    }
-                }
-
-                if idx == 0 {
-                    break;
-                } else {
-                    idx -= 1;
+                    Ordering::Less
                 }
             }
-        }
+        })
+        .map(|(idx, _)| idx)
+}
 
-        {
-            let mut idx = max_idx as usize;
-            while idx < land.len() {
-                match land.get(idx + 1) {
-                    None => {
-                        // no element on my right, I am the last element
-                        log::trace!("No element on the right of {}, increasing at {} with {}", idx, idx, water_to_right);
-                        land[idx].increase_height(water_to_right);
-                        break;
-                    }
+fn left_neighbor_is_lower(land: &[LandscapeElement], idx: usize) -> bool {
+    if idx == 0 {
+        false
+    } else {
+        land[idx].current_height() > land[idx - 1].current_height()
+    }
+}
 
-                    Some(one_to_right) => if one_to_right.current_height() > land[idx].current_height() {
-                        // right to me is higher than I am, water stays with me
-                        log::trace!("Element on the right of {} is higher, increasing {} with {}", idx, idx + 1, water_to_right);
-                        land[idx + 1].increase_height(water_to_right);
-                    } else {
-                        log::trace!("Element on the right of {} is lower, continue", idx);
-                        // continue iterating
-                    }
-                }
-
-                idx += 1;
-            }
-        }
-
-        let land_len = land.len();
-        rearrange(&mut land[0..max_idx]);
-        rearrange(&mut land[max_idx..(land_len - 1)]);
+fn right_neighbor_is_lower(land: &[LandscapeElement], idx: usize) -> bool {
+    if idx == (land.len() - 1) {
+        false
+    } else {
+        land[idx].current_height() > land[idx + 1].current_height()
     }
 }
 

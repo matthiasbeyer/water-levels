@@ -77,31 +77,55 @@ fn rearrange(land: &mut [LandscapeElement]) {
             return;
         }
 
+        let has_left_neighbor = max_idx != 0;
+        let has_right_neighbor = max_idx != (land.len() - 1);
+
+        let (water_to_left, water_to_right) = match (has_left_neighbor, has_right_neighbor) {
+            (true, false) => {
+                (1.0, 0.0)
+            },
+            (false, true) => {
+                (0.0, 1.0)
+            },
+            (true, true) => {
+                (1.0, 1.0)
+            },
+            (false, false) => {
+                (0.0, 0.0)
+            },
+        };
+
         {
             let mut idx = max_idx as usize;
             while idx >= 0 {
                 if idx == 0 {
                     // no left element, cannot subtract 1
-                    log::trace!("No element on the left of 0, increasing at 0");
-                    land[idx].increase_height(0.5);
+                    log::trace!("No element on the left of 0, increasing at 0 with {}", water_to_left);
+                    land[idx].increase_height(water_to_left);
                     break;
                 }
 
                 match land.get(idx - 1) {
                     None => {
                         // no element on my left, I am the last element
-                        log::trace!("No element on the left of {}, increasing at {}", idx, idx);
-                        land[idx].increase_height(0.5);
+                        log::trace!("No element on the left of {}, increasing at {} with {}", idx, idx, water_to_left);
+                        land[idx].increase_height(water_to_left);
                         break;
                     }
 
-                    Some(one_to_left) => if one_to_left.current_height() > land[idx].current_height() {
-                        // left to me is higher than I am, water stays with me
-                        log::trace!("Element on the left of {} is higher, increasing {}", idx, idx);
-                        land[idx].increase_height(0.5);
-                    } else {
-                        log::trace!("Element on the left of {} is lower, continue", idx);
-                        // continue iterating
+                    Some(one_to_left) => {
+                        let left_h = one_to_left.current_height();
+                        let curr_h = land[idx].current_height();
+
+                        log::trace!("{} -- {}", left_h, curr_h);
+                        if left_h > curr_h || float_cmp::approx_eq!(f32, left_h, curr_h, F32Margin::default()) {
+                            // left to me is higher than I am, water stays with me
+                            log::trace!("Element on the left of {} is higher or eq, increasing {} with {}", idx, idx, water_to_left);
+                            land[idx].increase_height(water_to_left);
+                        } else {
+                            log::trace!("Element on the left of {} is lower, continue", idx);
+                            // continue iterating
+                        }
                     }
                 }
 
@@ -119,15 +143,15 @@ fn rearrange(land: &mut [LandscapeElement]) {
                 match land.get(idx + 1) {
                     None => {
                         // no element on my right, I am the last element
-                        log::trace!("No element on the right of {}, increasing at {}", idx, idx);
-                        land[idx].increase_height(0.5);
+                        log::trace!("No element on the right of {}, increasing at {} with {}", idx, idx, water_to_right);
+                        land[idx].increase_height(water_to_right);
                         break;
                     }
 
                     Some(one_to_right) => if one_to_right.current_height() > land[idx].current_height() {
                         // right to me is higher than I am, water stays with me
-                        log::trace!("Element on the right of {} is higher, increasing {}", idx, idx + 1);
-                        land[idx].increase_height(0.5);
+                        log::trace!("Element on the right of {} is higher, increasing {} with {}", idx, idx + 1, water_to_right);
+                        land[idx + 1].increase_height(water_to_right);
                     } else {
                         log::trace!("Element on the right of {} is lower, continue", idx);
                         // continue iterating
@@ -140,7 +164,7 @@ fn rearrange(land: &mut [LandscapeElement]) {
 
         let land_len = land.len();
         rearrange(&mut land[0..max_idx]);
-        rearrange(&mut land[(max_idx)..(land_len - 1)]);
+        rearrange(&mut land[max_idx..(land_len - 1)]);
     }
 }
 
@@ -204,5 +228,21 @@ mod tests {
         float_cmp::assert_approx_eq!(f32, land[0].water_level, 2.33, ulps = 2);
         float_cmp::assert_approx_eq!(f32, land[1].water_level, 2.33, ulps = 2);
         float_cmp::assert_approx_eq!(f32, land[2].water_level, 2.33, ulps = 2);
+    }
+
+    #[test]
+    fn test_four_elements() {
+        let _ = env_logger::try_init();
+        let mut land: Vec<LE> = vec![LE::new(1), LE::new(2), LE::new(3), LE::new(4)];
+        for elem in land.iter_mut() {
+            elem.rain_one_hour();
+        }
+
+        rearrange(&mut land);
+
+        float_cmp::assert_approx_eq!(f32, land[0].water_level, 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[1].water_level, 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[2].water_level, 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level, 0.00, ulps = 2);
     }
 }

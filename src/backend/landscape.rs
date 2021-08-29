@@ -21,5 +21,11 @@ impl Landscape {
         self
     }
 
+    pub fn into_inner(self) -> Vec<(usize, f32)> {
+        self.elements.into_iter()
+            .map(LandscapeElement::into_inner)
+            .collect()
+    }
+
 }
 

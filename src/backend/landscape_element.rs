@@ -24,4 +24,8 @@ impl LandscapeElement {
     pub fn decrease_height(&mut self, h: f32) {
         self.water_level -= h;
     }
+
+    pub fn into_inner(self) -> (usize, f32) {
+        (self.base_height, self.water_level)
+    }
 }

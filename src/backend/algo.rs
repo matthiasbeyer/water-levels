@@ -1,55 +1,6 @@
-pub struct Landscape {
-    elements: Vec<LandscapeElement>,
-}
+use crate::backend::landscape_element::*;
 
-impl Landscape {
-    pub fn new(elements: Vec<usize>) -> Self {
-        Landscape {
-            elements: elements.into_iter().map(LandscapeElement::new).collect()
-        }
-    }
-
-    pub fn rain(mut self, hours: usize) -> Self {
-        for _ in 0..hours {
-            for elem in self.elements.iter_mut() {
-                elem.rain_one_hour();
-            }
-            rearrange(&mut self.elements)
-        }
-        self
-    }
-
-}
-
-#[derive(Debug)]
-struct LandscapeElement {
-    base_height: usize,
-    water_level: f32,
-}
-
-impl LandscapeElement {
-    fn new(base_height: usize) -> Self {
-        Self { base_height, water_level: 0.0 }
-    }
-
-    fn rain_one_hour(&mut self) {
-        self.water_level += 1.0;
-    }
-
-    fn current_height(&self) -> f32 {
-        (self.base_height as f32) + self.water_level
-    }
-
-    fn increase_height(&mut self, h: f32) {
-        self.water_level += h;
-    }
-
-    fn decrease_height(&mut self, h: f32) {
-        self.water_level -= h;
-    }
-}
-
-fn rearrange(land: &mut [LandscapeElement]) {
+pub fn rearrange(land: &mut [LandscapeElement]) {
     use float_cmp::*;
     log::trace!("Rearrange: {:?}", land);
 
@@ -173,7 +124,7 @@ fn right_neighbor_is_lower(land: &[LandscapeElement], idx: usize) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::LandscapeElement as LE;
+    use crate::backend::landscape_element::LandscapeElement as LE;
     use super::rearrange;
 
     #[test]

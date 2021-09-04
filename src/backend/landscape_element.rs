@@ -28,4 +28,9 @@ impl LandscapeElement {
     pub fn into_inner(self) -> (usize, f32) {
         (self.base_height, self.water_level)
     }
+
+    #[cfg(test)]
+    pub fn water_level(&self) -> f32 {
+        self.water_level
+    }
 }

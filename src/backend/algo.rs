@@ -137,7 +137,7 @@ mod tests {
 
         rearrange(&mut land);
 
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 1.0, ulps = 2);
     }
 
     #[test]
@@ -150,8 +150,8 @@ mod tests {
 
         rearrange(&mut land);
 
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 1.0, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[1].water_level, 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[1].water_level(), 1.0, ulps = 2);
     }
 
     #[test]
@@ -164,9 +164,9 @@ mod tests {
 
         rearrange(&mut land);
 
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 1.0, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[1].water_level, 1.0, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[2].water_level, 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[1].water_level(), 1.0, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[2].water_level(), 1.0, ulps = 2);
     }
 
     #[test]
@@ -179,9 +179,9 @@ mod tests {
 
         rearrange(&mut land);
 
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 2.33, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[1].water_level, 2.33, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[2].water_level, 2.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 2.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[1].water_level(), 2.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[2].water_level(), 2.33, ulps = 2);
     }
 
     #[test]
@@ -194,9 +194,9 @@ mod tests {
 
         rearrange(&mut land);
 
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 3.33, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[1].water_level, 3.33, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[2].water_level, 3.33, ulps = 2);
-        float_cmp::assert_approx_eq!(f32, land[0].water_level, 0.00, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[1].water_level(), 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[2].water_level(), 3.33, ulps = 2);
+        float_cmp::assert_approx_eq!(f32, land[0].water_level(), 0.00, ulps = 2);
     }
 }

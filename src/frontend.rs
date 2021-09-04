@@ -14,24 +14,19 @@ pub async fn css() -> &'static str {
 
 #[get("/")]
 pub async fn index() -> Result<maud::Markup> {
-    Ok(maud::html! {
-        link rel="stylesheet" href="style.css";
-        html {
-            body {
-                h1 { "Waterlevels" }
+    Ok(make_body(maud::html! {
+        h1 { "Waterlevels" }
 
-                p { "Please note that the application is resource-constrained to 25 MB RAM and 100 Landscape elements or 1000 hours of rain!" }
-                p { "The application will fail with bigger numbers or if OOM." }
+        p { "Please note that the application is resource-constrained to 25 MB RAM and 100 Landscape elements or 1000 hours of rain!" }
+        p { "The application will fail with bigger numbers or if OOM." }
 
-                form action="/make_landscape" method="post" {
-                    label { "Elements" }
-                    input type="number" name="elements" checked;
+        form action="/make_landscape" method="post" {
+            label { "Elements" }
+            input type="number" name="elements" checked;
 
-                    input type="submit";
-                }
-            }
+            input type="submit";
         }
-    })
+    }))
 }
 
 
@@ -43,36 +38,26 @@ pub struct LandscapeSize {
 #[post("/make_landscape")]
 pub async fn make_landscape(form: web::Form<LandscapeSize>) -> Result<maud::Markup> {
     if form.elements > 100 {
-        return Ok(maud::html! {
-            link rel="stylesheet" href="style.css";
-            html {
-                body {
-                    p { "For runtime reasons, this application only supports landscapes up to 100 elements" }
-                }
-            }
-        })
+        return Ok(make_body(maud::html! {
+            p { "For runtime reasons, this application only supports landscapes up to 100 elements" }
+        }))
     }
 
-    Ok(maud::html! {
-        link rel="stylesheet" href="style.css";
-        html {
-            body {
-                p { "Please fill in the landscape values" }
-                form action="/calculate" method="get" {
-                    @for _n in 0..form.elements {
-                        p {
-                            input type="number" name="levels[]" checked;
-                        }
-                    }
-
-                    input type="number" name="hours" checked;
-                    label for="hours" { "Hours of Rain" }
-
-                    input type="submit";
+    Ok(make_body(maud::html! {
+        p { "Please fill in the landscape values" }
+        form action="/calculate" method="get" {
+            @for _n in 0..form.elements {
+                p {
+                    input type="number" name="levels[]" checked;
                 }
             }
+
+            input type="number" name="hours" checked;
+            label for="hours" { "Hours of Rain" }
+
+            input type="submit";
         }
-    })
+    }))
 }
 
 #[derive(serde::Deserialize)]
@@ -101,51 +86,51 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
     // TODO: We should propably error with 500 here, I'm not sure.
     // This is just "good enough" for now.
     if ls.hours > 1000 {
-        return Ok(maud::html! {
-            link rel="stylesheet" href="style.css";
-            html {
-                body {
-                    h1 { "Landscape error" }
-
-                    p { "Not gonna do that. Calculating " (ls.hours) " is way too resource intensive, please use a value below 1000" }
-                }
-            }
-        })
+        return Ok(make_body(maud::html! {
+            h1 { "Landscape error" }
+            p { "Not gonna do that. Calculating " (ls.hours) " is way too resource intensive, please use a value below 1000" }
+        }))
     }
 
     let calculated_landscape = crate::backend::landscape::Landscape::new(ls.levels.clone()).rain(ls.hours);
-    Ok(maud::html! {
-        link rel="stylesheet" href="style.css";
-        html {
-            body {
-                h1 { "Landscape" }
+    Ok(make_body(maud::html! {
+        h1 { "Landscape" }
 
-                p { "Filling in " (ls.hours) " hours" }
+        p { "Filling in " (ls.hours) " hours" }
 
-                table class="table" {
-                    tbody {
-                        tr {
-                            @for value in &ls.levels {
-                                td { (value) }
-                            }
-                        }
-                    }
-                }
-
-                h2 { "Filled" }
-
-                table class="table" {
-                    tbody {
-                        tr {
-                            @for val in calculated_landscape.into_inner() {
-                                td { (val.0) " + " (val.1) }
-                            }
-                        }
+        table class="table" {
+            tbody {
+                tr {
+                    @for value in &ls.levels {
+                        td { (value) }
                     }
                 }
             }
         }
-    })
+
+        h2 { "Filled" }
+
+        table class="table" {
+            tbody {
+                tr {
+                    @for val in calculated_landscape.into_inner() {
+                        td { (val.0) " + " (val.1) }
+                    }
+                }
+            }
+        }
+    }))
 }
 
+
+fn make_body(inner: maud::Markup) -> maud::Markup {
+    maud::html! {
+        link rel="stylesheet" href="style.css";
+        html {
+            body {
+                (inner)
+            }
+        }
+    }
+}
 

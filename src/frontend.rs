@@ -11,7 +11,10 @@ pub async fn index() -> Result<maud::Markup> {
     Ok(maud::html! {
         html {
             body {
-                h1 { "Hello World!" }
+                h1 { "Waterlevels" }
+
+                p { "Please note that the application is resource-constrained to 25 MB RAM and 100 Landscape elements or 1000 hours of rain!" }
+                p { "The application will fail with bigger numbers or if OOM." }
 
                 form action="/make_landscape" method="post" {
                     label { "Elements" }

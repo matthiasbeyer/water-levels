@@ -6,9 +6,16 @@ use actix_web::HttpRequest;
 use actix_web::HttpResponse;
 use actix_web::Error;
 
+// TODO: This is not how you do it
+#[get("/style.css")]
+pub async fn css() -> &'static str {
+    std::include_str!("../static/bulma.css")
+}
+
 #[get("/")]
 pub async fn index() -> Result<maud::Markup> {
     Ok(maud::html! {
+        link rel="stylesheet" href="style.css";
         html {
             body {
                 h1 { "Waterlevels" }
@@ -37,6 +44,7 @@ pub struct LandscapeSize {
 pub async fn make_landscape(form: web::Form<LandscapeSize>) -> Result<maud::Markup> {
     if form.elements > 100 {
         return Ok(maud::html! {
+            link rel="stylesheet" href="style.css";
             html {
                 body {
                     p { "For runtime reasons, this application only supports landscapes up to 100 elements" }
@@ -46,6 +54,7 @@ pub async fn make_landscape(form: web::Form<LandscapeSize>) -> Result<maud::Mark
     }
 
     Ok(maud::html! {
+        link rel="stylesheet" href="style.css";
         html {
             body {
                 h1 { "Hello World!" }
@@ -95,6 +104,7 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
     // This is just "good enough" for now.
     if ls.hours > 1000 {
         return Ok(maud::html! {
+            link rel="stylesheet" href="style.css";
             html {
                 body {
                     h1 { "Landscape error" }
@@ -107,20 +117,33 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
 
     let calculated_landscape = crate::backend::landscape::Landscape::new(ls.levels.clone()).rain(ls.hours);
     Ok(maud::html! {
+        link rel="stylesheet" href="style.css";
         html {
             body {
-                h1 { "Landscape!" }
+                h1 { "Landscape" }
 
                 p { "Filling in " (ls.hours) " hours" }
 
-                @for value in &ls.levels {
-                    p { (value) }
+                table class="table" {
+                    tbody {
+                        tr {
+                            @for value in &ls.levels {
+                                td { (value) }
+                            }
+                        }
+                    }
                 }
 
                 h2 { "Filled" }
 
-                @for val in calculated_landscape.into_inner() {
-                    p { (val.0) " + " (val.1) }
+                table class="table" {
+                    tbody {
+                        tr {
+                            @for val in calculated_landscape.into_inner() {
+                                td { (val.0) " + " (val.1) }
+                            }
+                        }
+                    }
                 }
             }
         }

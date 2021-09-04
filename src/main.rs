@@ -29,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
+            .service(crate::frontend::css)
             .service(crate::frontend::index)
             .service(crate::frontend::make_landscape)
             .service(crate::frontend::calculate)

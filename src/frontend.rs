@@ -15,13 +15,13 @@ pub async fn css() -> &'static str {
 #[get("/")]
 pub async fn index() -> Result<maud::Markup> {
     Ok(make_body(maud::html! {
-        h1 { "Waterlevels" }
-
-        p { "Please note that the application is resource-constrained to 25 MB RAM and 100 Landscape elements or 1000 hours of rain!" }
-        p { "The application will fail with bigger numbers or if OOM." }
+        small {
+            p { "Please note that the application is resource-constrained to 25 MB RAM and 100 Landscape elements or 1000 hours of rain!" }
+            p { "The application will fail with bigger numbers or if OOM." }
+        }
 
         form action="/make_landscape" method="post" {
-            label { "Elements" }
+            label for="elements" { "Elements" }
             input type="number" name="elements" checked;
 
             input type="submit";
@@ -87,14 +87,14 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
     // This is just "good enough" for now.
     if ls.hours > 1000 {
         return Ok(make_body(maud::html! {
-            h1 { "Landscape error" }
+            h2 class="title is-2" { "Landscape error" }
             p { "Not gonna do that. Calculating " (ls.hours) " is way too resource intensive, please use a value below 1000" }
         }))
     }
 
     let calculated_landscape = crate::backend::landscape::Landscape::new(ls.levels.clone()).rain(ls.hours);
     Ok(make_body(maud::html! {
-        h1 { "Landscape" }
+        h2 class="title is-2" { "Landscape" }
 
         p { "Filling in " (ls.hours) " hours" }
 
@@ -108,7 +108,7 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
             }
         }
 
-        h2 { "Filled" }
+        h2 class="title is-2" { "Filled" }
 
         table class="table" {
             tbody {
@@ -128,7 +128,16 @@ fn make_body(inner: maud::Markup) -> maud::Markup {
         link rel="stylesheet" href="style.css";
         html {
             body {
-                (inner)
+                center {
+                    h1 class="title is-1" { "Water Levels Application" }
+                }
+                div class="columns" {
+                    div class="column is-one-fifth" {
+                    }
+                    div class="column" {
+                        (inner)
+                    }
+                }
             }
         }
     }

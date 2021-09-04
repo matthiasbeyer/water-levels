@@ -91,6 +91,20 @@ pub async fn calculate(req: HttpRequest) -> Result<maud::Markup> {
     let ls: Landscape = config.deserialize_str(&req.query_string())
         .map_err(|e| actix_web::error::ErrorInternalServerError(format!("{}", e)))?;
 
+    // TODO: We should propably error with 500 here, I'm not sure.
+    // This is just "good enough" for now.
+    if ls.hours > 1000 {
+        return Ok(maud::html! {
+            html {
+                body {
+                    h1 { "Landscape error" }
+
+                    p { "Not gonna do that. Calculating " (ls.hours) " is way too resource intensive, please use a value below 1000" }
+                }
+            }
+        })
+    }
+
     let calculated_landscape = crate::backend::landscape::Landscape::new(ls.levels.clone()).rain(ls.hours);
     Ok(maud::html! {
         html {

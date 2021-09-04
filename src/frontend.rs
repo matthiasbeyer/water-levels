@@ -57,8 +57,6 @@ pub async fn make_landscape(form: web::Form<LandscapeSize>) -> Result<maud::Mark
         link rel="stylesheet" href="style.css";
         html {
             body {
-                h1 { "Hello World!" }
-
                 p { "Please fill in the landscape values" }
                 form action="/calculate" method="get" {
                     @for _n in 0..form.elements {
